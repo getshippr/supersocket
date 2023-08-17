@@ -4,3 +4,4 @@ lib
 .env
 dist
 .yarnrc
+.yarnrc.yml

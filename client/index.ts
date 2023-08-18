@@ -148,7 +148,7 @@ export default class SuperSocket {
   /**
    * Triggers when onmessage event
    */
-  public onmessage: ((event: Event) => void) | null = null;
+  public onmessage: ((event: WebSocket.MessageEvent) => void) | null = null;
   /**
    * Triggers when onclose event
    */

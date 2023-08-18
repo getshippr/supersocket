@@ -208,6 +208,7 @@ export default class SuperSocket {
 
       setTimeout(() => {
         if (this._client?.readyState === 0 && !this._lockReConnect) {
+          //@ts-ignore
           clearInterval(this._reconnectInterval);
           const error = new ErrorEvent(new Error("timeout"), null);
           this._onError(error);
@@ -239,6 +240,7 @@ export default class SuperSocket {
     this._lockReConnect = false;
     this._totalRetry = 0;
 
+    //@ts-ignore
     clearInterval(this._reconnectInterval);
 
     if (this._queue.length) {
@@ -259,10 +261,12 @@ export default class SuperSocket {
    */
   private _reconnect = () => {
     this._lockConnect = false;
+    //@ts-ignore
     this._reconnectInterval = setInterval(() => {
       if (this._totalRetry <= (this._options.maxRetries || 0)) {
         this._connect();
       } else {
+        //@ts-ignore
         clearInterval(this._reconnectInterval);
       }
     }, 1000);

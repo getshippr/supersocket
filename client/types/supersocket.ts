@@ -91,7 +91,7 @@ export type SuperSocketOptions = {
    * @default undefined
    */
   authenticate?: SuperSocketAuth;
-  useQueueFallback?: boolean;
+  offline?: boolean;
 };
 
 export default {
@@ -102,5 +102,5 @@ export default {
   debug: false,
   disableReconnect: false,
   queryParams: {},
-  useQueueFallback: true,
+  offline: true,
 };

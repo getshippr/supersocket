@@ -186,7 +186,7 @@ export default class SuperSocket {
         });
       }
     } else {
-      if (this._options.useQueueFallback) {
+      if (this._options.offline) {
         this._queue.push({ data, timestamp: Date.now() });
       }
     }

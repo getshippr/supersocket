@@ -57,7 +57,7 @@ const ws = new SuperSocket("wss://localhost:1234", [], {
 });
 ```
 
-### Example
+#### Example with cookie base authentication
 
 ```js
 import SuperSocket from "@shippr/supersocket";
@@ -72,6 +72,8 @@ const ws = new SuperSocket("wss://localhost:1234", [], {
   },
 });
 ```
+
+#### Example with credentials based authentication
 
 ```js
 import SuperSocket from "@shippr/supersocket";

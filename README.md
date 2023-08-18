@@ -31,11 +31,23 @@ npm install @shippr/supersocket
 ```js
 import SuperSocket from "@shippr/supersocket";
 
-//old implementation
+//native WebSocket implementation
 const ws = new WebSocket("wss://localhost:1234");
 
 //new implementation
 const ws = new SuperSocket("wss://localhost:1234");
+```
+
+## Add query parameters
+
+```js
+import SuperSocket from "@shippr/supersocket";
+
+const ws = new SuperSocket("wss://localhost:1234", [], {
+  queryParams: { foo: 'bar },
+});
+
+/* ws.url = wss://localhost:1234/?foo=bar */
 ```
 
 ## Authentication

@@ -44,8 +44,46 @@ const ws = new SuperSocket("wss://localhost:1234");
 import SuperSocket from "@shippr/supersocket";
 
 const ws = new SuperSocket("wss://localhost:1234", [], {
+  //prevents socket opening if endpoint returns something other than 200
   authenticate: {
-    endpoint: "/api/ws/auth",
+    endpoint: "/your-auth-endpoint-api",
+    headers: {
+      "whatever bearer": value,
+    },
+    data: {
+      foo: bar,
+    },
+  },
+});
+```
+
+### Example
+
+```js
+import SuperSocket from "@shippr/supersocket";
+
+const ws = new SuperSocket("wss://localhost:1234", [], {
+  //prevents socket opening if endpoint returns something other than 200
+  authenticate: {
+    endpoint: "/your-auth-endpoint-api",
+    headers: {
+      "crsf cookie": value,
+    },
+  },
+});
+```
+
+```js
+import SuperSocket from "@shippr/supersocket";
+
+const ws = new SuperSocket("wss://localhost:1234", [], {
+  //prevents socket opening if endpoint returns something other than 200
+  authenticate: {
+    endpoint: "/your-auth-endpoint-api",
+    data: {
+      "client id": value,
+      "client pwd": value,
+    },
   },
 });
 ```
@@ -68,7 +106,7 @@ const ws = new SuperSocket("wss://localhost:1234", [], {
 import SuperSocket from "@shippr/supersocket";
 
 const ws = new SuperSocket("wss://localhost:1234", [], {
-  //will queue messages until connection opens
+  //will queue messages and will process then when connection opens
   offline: true,
 });
 ```

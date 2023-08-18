@@ -1,6 +1,6 @@
 {
   "name": "@shippr/supersocket",
-  "version": "0.0.3",
+  "version": "1.0.0",
   "description": "Stable and Secured WebSocket implementation",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",

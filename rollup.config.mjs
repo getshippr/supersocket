@@ -22,6 +22,7 @@ export default {
     commonjs(),
     typescript({
       typescript: require("typescript"),
+      exclude: ["./__tests__"],
     }),
   ],
 };

@@ -98,7 +98,7 @@ export default class SuperSocket {
       this._authenticate(this._options.authenticate)
         .then((res) => {
           if (res && res.status !== 200) {
-            console.error("user unauthorized");
+            console.error(res, "user unauthorized");
           } else {
             this._connect();
           }
@@ -116,6 +116,13 @@ export default class SuperSocket {
    */
   get url() {
     return this._url;
+  }
+
+  /**
+   * Current retry
+   */
+  get totalRetry() {
+    return this._totalRetry;
   }
 
   /**
@@ -275,8 +282,8 @@ export default class SuperSocket {
    * on message handler
    */
   private _onmessage = (event: WebSocket.MessageEvent) => {
-    if (this._options.forwardOptions?.onMessage) {
-      const forward = this._options.forwardOptions;
+    const forward = this._options.forwardOptions;
+    if (forward && forward.onMessage) {
       let headers: any = {};
 
       if (forward.headers) {
@@ -307,8 +314,8 @@ export default class SuperSocket {
   private _onError = (event: ErrorEvent) => {
     this._lockConnect = false;
     this._disconnect(undefined, event.message);
-    if (this._options.forwardOptions?.onError) {
-      const forward = this._options.forwardOptions;
+    const forward = this._options.forwardOptions;
+    if (forward && forward.onError) {
       let headers: any = {};
 
       if (forward.headers) {

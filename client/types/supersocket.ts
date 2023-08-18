@@ -72,13 +72,13 @@ export type SuperSocketOptions = {
      * ex: '/api/ws/message'
      * @default undefined
      */
-    onMessage: string;
+    onMessage?: string;
     /**
      * Forward (POST) onerror() to API route
      * ex: '/api/ws/error'
      * @default undefined
      */
-    onError: string;
+    onError?: string;
     /**
      * Adds extra-headers to POST call
      * @default undefined

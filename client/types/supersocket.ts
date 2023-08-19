@@ -26,6 +26,18 @@ export type SuperSocketOptions = {
    */
   reconnectDelay?: number;
   /**
+   * Cypher encryption
+   * ref: https://github.com/brix/crypto-js#object-encryption
+   * @default undefined
+   */
+  encryptKey?: string;
+  /**
+   * Cypher decryption
+   * ref: https://github.com/brix/crypto-js#object-encryption
+   * @default undefined
+   */
+  decryptKey?: string;
+  /**
    * In milliseconds, triggers a timeout error
    * @default 10000
    */

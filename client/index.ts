@@ -5,6 +5,7 @@ import defaultOptions, {
   SuperSocketAuth,
   SuperSocketOptions,
 } from "./types/supersocket";
+import { AES, enc } from "crypto-js";
 
 export default class SuperSocket {
   /**
@@ -119,6 +120,13 @@ export default class SuperSocket {
   }
 
   /**
+   * returns websocket client
+   */
+  get client() {
+    return this._client;
+  }
+
+  /**
    * Current retry
    */
   get totalRetry() {
@@ -161,23 +169,25 @@ export default class SuperSocket {
   /**
    * send message to websocket
    * Chunks message if chunkSize > 0
+   * Encrypts message if encryptKey provided
    */
   public send(data: Object) {
     if (this._client && this._client.readyState === 1) {
-      const jsonString = JSON.stringify(data);
-      const sizeInBytes = Buffer.from(jsonString).length;
+      let str = JSON.stringify(data);
+      if (this._options.encryptKey) {
+        str = AES.encrypt(str, this._options.encryptKey).toString();
+      }
+      const sizeInBytes = Buffer.from(str).length;
       const sizeInKB = sizeInBytes / 1024;
       if (
         !this._options.chunkSize ||
         (this._options.chunkSize && this._options.chunkSize >= sizeInKB)
       ) {
-        this._client.send(jsonString);
+        console.log("str", str);
+        this._client.send(str);
       } else {
         const chunkId = `chunk-${Date.now()}`;
-        const chunks = this._splitStringBySize(
-          jsonString,
-          this._options.chunkSize
-        );
+        const chunks = this._splitStringBySize(str, this._options.chunkSize);
         const nbChunks = chunks.length;
         chunks.forEach((chunk, index) => {
           this._client?.send(
@@ -287,6 +297,11 @@ export default class SuperSocket {
    */
   private _onmessage = (event: WebSocket.MessageEvent) => {
     const forward = this._options.forwardOptions;
+    let data: string = `${event.data}`;
+    if (this._options.decryptKey) {
+      const bytes = AES.decrypt(`${event.data}`, this._options.decryptKey);
+      data = bytes.toString(enc.Utf8);
+    }
     if (forward && forward.onMessage) {
       let headers: any = {};
 
@@ -297,7 +312,7 @@ export default class SuperSocket {
         fetch(forward.onMessage, {
           headers,
           method: "POST",
-          body: `${event.data}`,
+          body: data,
         });
       } catch (e) {
         const error = new ErrorEvent(

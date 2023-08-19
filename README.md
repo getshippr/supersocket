@@ -102,6 +102,35 @@ const ws = new SuperSocket("wss://localhost:1234", [], {
 });
 ```
 
+## Encryption
+
+#### Encrypt
+
+```js
+import SuperSocket from "@shippr/supersocket";
+
+const ws = new SuperSocket("wss://localhost:1234", [], {
+  encryptKey: "my secret key",
+});
+
+ws.send("this will be encrypted");
+```
+
+#### Decrypt
+
+```js
+import SuperSocket from "@shippr/supersocket";
+
+const ws = new SuperSocket("wss://localhost:1234", [], {
+  decryptKey: "my secret key",
+});
+
+ws.onmessage = (event) = {
+  // event.data will be decrypted
+  console.log(event.data)
+}
+```
+
 ## Forwarding
 
 ```js
@@ -142,6 +171,8 @@ ws.send({ ...myVeryBigJson });
 ```js
 export type SuperSocketOptions = {
   reconnectDelay?: number,
+  encryptKey?: string,
+  decryptKey?: string,
   connectionTimeout?: number,
   maxRetries?: number,
   debug?: boolean,

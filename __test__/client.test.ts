@@ -1,12 +1,11 @@
 import { describe, expect, test } from "@jest/globals";
 import SuperSocket from "../client";
-import { WebSocket, Server } from "mock-socket";
+import { Server } from "mock-socket";
 import fetch from "jest-fetch-mock";
 fetch.enableMocks();
 let mockServer = new Server("wss://localhost:1234");
 
 beforeEach(() => {
-  global.WebSocket = WebSocket;
   fetch.resetMocks();
 });
 
@@ -128,6 +127,7 @@ describe("SuperSocket instantiated, it should", () => {
     await new Promise((r) => setTimeout(r, 1000));
     expect(ws.totalRetry).toBeLessThan(2);
   });
+
   test("should close current connection on error", async () => {
     mockServer.on("connection", (x) => {
       //@ts-ignore

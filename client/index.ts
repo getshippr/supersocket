@@ -33,6 +33,10 @@ export default class SuperSocket {
    */
   private _reconnectInterval: NodeJS.Timer | undefined = undefined;
   /**
+   * Timer used for reconnection
+   */
+  private _pingInterval: NodeJS.Timer | undefined = undefined;
+  /**
    * Prevents multiple connection if one is ongoing
    */
   private _lockConnect: boolean = false;
@@ -50,6 +54,11 @@ export default class SuperSocket {
   private _queue: { timestamp: number; data: Object }[] = [];
 
   /**
+   * current timestamp
+   */
+  private _timestamp: number | undefined = undefined;
+
+  /**
    * Call to authentication middleware
    */
   private _authenticate(authOptions: SuperSocketAuth) {
@@ -58,6 +67,25 @@ export default class SuperSocket {
       method: "POST",
       body: JSON.stringify(authOptions.data || {}),
     });
+  }
+
+  /**
+   * Debug
+   */
+  private _debug(log: string, data?: any) {
+    if (this._options.debug) {
+      const current = Date.now();
+      console.debug(
+        `[${
+          this._timestamp === undefined
+            ? "start"
+            : `${current - this._timestamp}ms`
+        }] `,
+        log,
+        data || ""
+      );
+      this._timestamp = current;
+    }
   }
 
   constructor(
@@ -96,8 +124,10 @@ export default class SuperSocket {
     this._protocols = protocols;
 
     if (this._options.authenticate) {
+      this._debug("authenticating users before opening socket");
       this._authenticate(this._options.authenticate)
         .then((res) => {
+          this._debug("authentication answer", res);
           if (res && res.status !== 200) {
             console.error(res, "user unauthorized");
           } else {
@@ -172,10 +202,12 @@ export default class SuperSocket {
    * Encrypts message if encryptKey provided
    */
   public send(data: Object) {
+    this._debug(`sending message`, data);
     if (this._client && this._client.readyState === 1) {
       let str = JSON.stringify(data);
       if (this._options.encryptKey) {
         str = AES.encrypt(str, this._options.encryptKey).toString();
+        this._debug(`message encrypted to`, str);
       }
       const sizeInBytes = Buffer.from(str).length;
       const sizeInKB = sizeInBytes / 1024;
@@ -183,7 +215,6 @@ export default class SuperSocket {
         !this._options.chunkSize ||
         (this._options.chunkSize && this._options.chunkSize >= sizeInKB)
       ) {
-        console.log("str", str);
         this._client.send(str);
       } else {
         const chunkId = `chunk-${Date.now()}`;
@@ -196,8 +227,10 @@ export default class SuperSocket {
         });
       }
     } else {
+      this._debug(`socket disconnected, queuing incomming messages`);
       if (this._options.offline) {
         this._queue.push({ data, timestamp: Date.now() });
+        this._debug(`in queue ${this._queue.length}`);
       }
     }
   }
@@ -206,6 +239,11 @@ export default class SuperSocket {
    * Handles websocket connection
    */
   private _connect = () => {
+    this._debug(
+      `connecting to ${this._url} (${
+        /wss/.test(this._url) ? "secured" : "unsecured"
+      })`
+    );
     if (!this._lockConnect) {
       this._totalRetry++;
       this._lockConnect = true;
@@ -214,16 +252,32 @@ export default class SuperSocket {
         ? new ws(this._url, this._protocols)
         : new ws(this._url);
 
+      this._debug(
+        `instanciated websocket with status ${this._client?.readyState}`
+      );
       this._addEventListeners();
+      this._debug(`added event listeners`);
 
       setTimeout(() => {
         if (this._client?.readyState === 0 && !this._lockReConnect) {
+          this._debug(
+            `timeout reached (from options: ${this._options.connectionTimeout})`
+          );
           //@ts-ignore
           clearInterval(this._reconnectInterval);
+          //@ts-ignore
+          clearInterval(this._pingInterval);
           const error = new ErrorEvent(new Error("timeout"), null);
           this._onError(error);
         }
       }, this._options.connectionTimeout);
+
+      this._pingInterval = setInterval(() => {
+        if (this._client?.readyState === 1) {
+          this._debug(`sending ping to server to keep alive`);
+          this._client?.send(JSON.stringify({ type: "ping" }));
+        }
+      }, this._options.pingInterval);
     }
   };
 
@@ -254,10 +308,13 @@ export default class SuperSocket {
     clearInterval(this._reconnectInterval);
 
     if (this._queue.length) {
+      this._debug(`queue not empty, processing it`);
       const queue = this._queue.sort((a, b) => {
         return a.timestamp > b.timestamp ? 1 : -1;
       });
-      queue.forEach((m) => this.send(m.data));
+      queue.forEach((m) => {
+        this.send(m.data);
+      });
       this._queue = [];
     }
 
@@ -271,13 +328,19 @@ export default class SuperSocket {
    */
   private _reconnect = () => {
     this._lockConnect = false;
+    this._debug(`setting reconnect interval`);
     //@ts-ignore
     this._reconnectInterval = setInterval(() => {
       if (this._totalRetry <= (this._options.maxRetries || 0)) {
+        this._debug(`new attempt (total: ${this._totalRetry})`);
         this._connect();
       } else {
+        this._debug(`limit retries reached (${this._options.maxRetries})`);
+
         //@ts-ignore
         clearInterval(this._reconnectInterval);
+        //@ts-ignore
+        clearInterval(this._pingInterval);
       }
     }, 1000);
   };
@@ -290,19 +353,32 @@ export default class SuperSocket {
     if (this.onclose) {
       this.onclose(event);
     }
+    if (
+      !this._options.disableReconnect &&
+      !this._lockReConnect &&
+      this._client?.readyState === 3
+    ) {
+      this._lockReConnect = true;
+      this._debug(`starting reconnect after closing`);
+      this._reconnect();
+    }
   };
 
   /**
    * on message handler
    */
   private _onmessage = (event: WebSocket.MessageEvent) => {
+    this._debug(`message received`, event.data);
     const forward = this._options.forwardOptions;
     let data: string = `${event.data}`;
     if (this._options.decryptKey) {
+      this._debug(`message to be decrypted (AES)`);
       const bytes = AES.decrypt(`${event.data}`, this._options.decryptKey);
       data = bytes.toString(enc.Utf8);
+      this._debug(`message decrypted`);
     }
     if (forward && forward.onMessage) {
+      this._debug(`message to be forwarded to ${forward.onMessage}`);
       let headers: any = {};
 
       if (forward.headers) {
@@ -331,10 +407,13 @@ export default class SuperSocket {
    * on error handler
    */
   private _onError = (event: ErrorEvent) => {
+    this._debug(`error state in connection, will disconnect`, event.message);
     this._lockConnect = false;
     this._disconnect(undefined, event.message);
     const forward = this._options.forwardOptions;
     if (forward && forward.onError) {
+      this._debug(`fowarding error to ${forward.onError}`);
+
       let headers: any = {};
 
       if (forward.headers) {
@@ -361,6 +440,7 @@ export default class SuperSocket {
       this._client?.readyState === 3
     ) {
       this._lockReConnect = true;
+      this._debug(`starting reconnect after error`);
       this._reconnect();
     }
     if (this.onerror) {
@@ -372,6 +452,7 @@ export default class SuperSocket {
    * on disconnect handler
    */
   private _disconnect(code = 1000, reason?: string) {
+    this._debug(`disconnecting client`);
     if (!this._client) {
       return;
     }

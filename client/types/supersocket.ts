@@ -70,6 +70,11 @@ export type SuperSocketOptions = {
    */
   queryParams?: any;
   /**
+   * ms interval used for ping/keep-alive
+   * @default undefined
+   */
+  pingInterval?: any;
+  /**
    * Warning: Prevent non secured (ws://) traffic to go through
    * @default true
    */
@@ -115,4 +120,5 @@ export default {
   disableReconnect: false,
   queryParams: {},
   offline: true,
+  pingInterval: 10000,
 };

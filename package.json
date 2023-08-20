@@ -1,6 +1,6 @@
 {
   "name": "@shippr/supersocket",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Stable and Secured WebSocket implementation",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
@@ -33,7 +33,7 @@
     "prepack": "yarn build",
     "build": "rollup -c --bundleConfigAsCjs",
     "watch": "rollup -cw",
-    "test": "jest"
+    "test": "jest --forceExit"
   },
   "dependencies": {
     "@jest/globals": "^29.6.2",

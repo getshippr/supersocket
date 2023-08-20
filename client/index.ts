@@ -353,6 +353,15 @@ export default class SuperSocket {
     if (this.onclose) {
       this.onclose(event);
     }
+    if (
+      !this._options.disableReconnect &&
+      !this._lockReConnect &&
+      this._client?.readyState === 3
+    ) {
+      this._lockReConnect = true;
+      this._debug(`starting reconnect after closing`);
+      this._reconnect();
+    }
   };
 
   /**
@@ -431,9 +440,7 @@ export default class SuperSocket {
       this._client?.readyState === 3
     ) {
       this._lockReConnect = true;
-      this._debug(
-        `trying to reconnect after error - try n°${this._totalRetry}`
-      );
+      this._debug(`starting reconnect after error`);
       this._reconnect();
     }
     if (this.onerror) {
@@ -451,7 +458,6 @@ export default class SuperSocket {
     }
     this._client.close(code, reason);
     this._onclose(new CloseEvent(code, reason, this));
-    this._debug(`client closing`);
   }
 
   /**

@@ -6,7 +6,8 @@ Secure and stable websocket implementation
 
 - Drop in replacement of native Websocket implementation (same API)
 - Works in Node js and Web
-- Can manage heavy sized messaged
+- Keep-alive
+- Can manage heavy sized message
 - Authentication and encryption
 - Handle connection timeouts
 - Offline mode

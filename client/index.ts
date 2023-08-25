@@ -174,11 +174,15 @@ export default class SuperSocket {
   /**
    * Trigger websocket connection
    */
-  public connect: (() => void) | null = null;
+  public connect(): void {
+    return this._connect();
+  }
   /**
    * Called on close event
    */
-  public close: (() => void) | null = null;
+  public close(): void {
+    return this._disconnect();
+  }
   /**
    * Called on close event
    */

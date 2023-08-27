@@ -6,6 +6,7 @@ import defaultOptions, {
   SuperSocketOptions,
 } from "./types/supersocket";
 import { AES, enc } from "crypto-js";
+import { Buffer } from "buffer";
 
 export default class SuperSocket {
   /**

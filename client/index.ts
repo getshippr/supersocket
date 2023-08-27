@@ -376,9 +376,9 @@ export default class SuperSocket {
     this._debug(`message received`, event.data);
     const forward = this._options.forwardOptions;
     let data: string = `${event.data}`;
-    if (this._options.decryptKey) {
+    if (this._options.encryptKey) {
       this._debug(`message to be decrypted (AES)`);
-      const bytes = AES.decrypt(`${event.data}`, this._options.decryptKey);
+      const bytes = AES.decrypt(`${event.data}`, this._options.encryptKey);
       data = bytes.toString(enc.Utf8);
       this._debug(`message decrypted`);
     }

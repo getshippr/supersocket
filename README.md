@@ -123,7 +123,7 @@ ws.send("this will be encrypted");
 import SuperSocket from "@shippr/supersocket";
 
 const ws = new SuperSocket("wss://localhost:1234", [], {
-  decryptKey: "my secret key",
+  encryptKey: "my secret key",
 });
 
 ws.onmessage = (event) = {
@@ -173,7 +173,6 @@ ws.send({ ...myVeryBigJson });
 export type SuperSocketOptions = {
   reconnectDelay?: number,
   encryptKey?: string,
-  decryptKey?: string,
   connectionTimeout?: number,
   maxRetries?: number,
   debug?: boolean,

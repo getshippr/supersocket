@@ -347,7 +347,7 @@ export default class SuperSocket {
         //@ts-ignore
         clearInterval(this._pingInterval);
       }
-    }, 1000);
+    }, this._options.reconnectDelay);
   };
 
   /**
